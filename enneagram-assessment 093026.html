@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Enneagram Assessment</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root{
+    --paper:#F4F5F0;
+    --paper-dim:#E8EAE2;
+    --ink:#1A1F1B;
+    --ink-soft:#5B6259;
+    --line:#C9CDC0;
+    --accent:#1F5C4D;
+    --accent-soft:#DCE7E0;
+    --gold:#C98A2B;
+    --card:#FFFFFF;
+    --radius:18px;
+    --shadow:0 10px 30px -14px rgba(26,31,27,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Karla',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px;
+    line-height:1.5;
+  }
+  .app{
+    width:100%;
+    max-width:640px;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn .4s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- diagram ---------- */
+  .diagram-wrap{
+    display:flex;
+    justify-content:center;
+    margin:8px 0 20px;
+  }
+  svg.enneagram{ width:100%; max-width:280px; height:auto; }
+  .diag-line{ fill:none; stroke:var(--line); stroke-width:1.4; }
+  .diag-circle-outline{ fill:none; stroke:var(--line); stroke-width:1.4; }
+  .point-dot circle.base{ stroke:var(--card); stroke-width:2; }
+  .point-dot text{
+    font-family:'Karla',sans-serif;
+    font-weight:700;
+    fill:#fff;
+    text-anchor:middle;
+    dominant-baseline:central;
+  }
+  .point-dot.dim circle.base{ opacity:0.28; }
+  .point-dot.dim text{ opacity:0.55; }
+  .point-dot.highlight circle.ring{
+    fill:none; stroke-width:3; opacity:0.9;
+  }
+  .progress-ring-bg{ fill:none; stroke:var(--paper-dim); stroke-width:5; }
+  .progress-ring-fg{ fill:none; stroke:var(--accent); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset .3s ease; }
+
+  /* ---------- intro ---------- */
+  .intro-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:32px 28px;
+    box-shadow:var(--shadow);
+    text-align:center;
+  }
+  .intro-card p{ color:var(--ink-soft); font-size:15px; }
+  .meta-row{
+    display:flex;
+    justify-content:center;
+    gap:22px;
+    margin:18px 0 22px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .meta-row strong{ display:block; font-family:'Fraunces',serif; font-size:20px; color:var(--ink); font-weight:600; }
+
+  button{
+    font-family:'Karla',sans-serif;
+    cursor:pointer;
+    border:none;
+    outline:none;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+    font-size:16px;
+    font-weight:700;
+    padding:14px 30px;
+    border-radius:100px;
+    box-shadow:0 8px 18px -8px rgba(31,92,77,0.55);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 10px 22px -8px rgba(31,92,77,0.6); }
+  .btn-primary:active{ transform:translateY(0px) scale(0.98); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:14px;
+    font-weight:600;
+    padding:10px 16px;
+    border-radius:100px;
+  }
+  .btn-ghost:hover{ color:var(--ink); }
+
+  /* ---------- quiz ---------- */
+  .quiz-top{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .ring-wrap{ position:relative; width:52px; height:52px; flex:none; }
+  .ring-wrap svg{ width:52px; height:52px; transform:rotate(-90deg); }
+  .ring-wrap .count{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--accent);
+  }
+  .progress-label{ font-size:13px; color:var(--ink-soft); }
+
+  .question-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:34px 28px 28px;
+    box-shadow:var(--shadow);
+    min-height:210px;
+  }
+  .q-text{
+    font-family:'Fraunces',serif;
+    font-size:23px;
+    font-weight:500;
+    font-style:italic;
+    line-height:1.35;
+    margin-bottom:26px;
+    min-height:96px;
+  }
+  .scale{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .scale button{
+    flex:1;
+    aspect-ratio:1/1;
+    border-radius:14px;
+    background:var(--paper-dim);
+    border:2px solid transparent;
+    font-weight:700;
+    font-size:16px;
+    color:var(--ink-soft);
+    transition:all .15s ease;
+  }
+  .scale button:hover{ border-color:var(--accent); color:var(--accent); }
+  .scale button.selected{
+    background:var(--accent);
+    color:#fff;
+  }
+  .scale-labels{
+    display:flex;
+    justify-content:space-between;
+    margin-top:8px;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .quiz-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:18px;
+  }
+
+  /* ---------- results ---------- */
+  .result-header{ text-align:center; margin-bottom:8px; }
+  .result-header .eyebrow{ justify-content:center; }
+  .type-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 26px 24px;
+    margin-bottom:16px;
+    border-top:5px solid var(--accent);
+  }
+  .type-card.wing{ border-top-color:var(--gold); }
+  .type-card .tag{
+    display:inline-block;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:4px 10px;
+    border-radius:100px;
+    margin-bottom:10px;
+  }
+  .type-card.wing .tag{ color:#8a5c1c; background:#F3E6CC; }
+  .type-card h2{ font-size:24px; }
+  .type-card .motivation{
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:14px;
+    margin-bottom:12px;
+  }
+  .type-card p.desc{ font-size:15px; color:#333; }
+  .combo-line{
+    text-align:center;
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:18px 0 22px;
+  }
+  .combo-line strong{ color:var(--ink); font-family:'Fraunces',serif; font-size:17px; font-weight:600; }
+  .results-actions{ text-align:center; margin-top:8px; }
+
+  .email-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px 24px;
+    margin-bottom:16px;
+    text-align:center;
+  }
+  .email-card h3{ font-size:17px; margin-bottom:4px; }
+  .email-card p{ font-size:13px; color:var(--ink-soft); margin:0 0 14px; }
+  .email-row{
+    display:flex;
+    gap:8px;
+  }
+  .email-row input{
+    flex:1;
+    font-family:'Karla',sans-serif;
+    font-size:15px;
+    padding:12px 14px;
+    border-radius:12px;
+    border:2px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    min-width:0;
+  }
+  .email-row input:focus{ outline:none; border-color:var(--accent); }
+  .email-row button{
+    background:var(--accent);
+    color:#fff;
+    font-weight:700;
+    font-size:14px;
+    padding:0 18px;
+    border-radius:12px;
+    white-space:nowrap;
+    transition:opacity .15s ease;
+  }
+  .email-row button:disabled{ opacity:0.55; cursor:default; }
+  .email-status{
+    font-size:13px;
+    margin-top:10px;
+    min-height:18px;
+  }
+  .email-status.ok{ color:var(--accent); font-weight:600; }
+  .email-status.err{ color:#A34B45; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== INTRO ===================== -->
+  <section id="screen-intro" class="screen active">
+    <div class="intro-card">
+      <div class="diagram-wrap"><div id="intro-diagram"></div></div>
+      <div class="eyebrow">Enneagram Assessment</div>
+      <h1>Find your type</h1>
+      <p>Rate how much each statement sounds like you. There are no right answers &mdash; just answer as you actually are, not as you'd like to be.</p>
+      <div class="meta-row">
+        <div><strong>63</strong>statements</div>
+        <div><strong>~11</strong>minutes</div>
+        <div><strong>9</strong>types</div>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">Begin assessment</button>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-top">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 52 52">
+          <circle class="progress-ring-bg" cx="26" cy="26" r="22"></circle>
+          <circle id="progress-ring-fg" class="progress-ring-fg" cx="26" cy="26" r="22"></circle>
+        </svg>
+        <div class="count" id="progress-count">1/45</div>
+      </div>
+      <div class="progress-label">Answer honestly &mdash; your first instinct is usually right.</div>
+    </div>
+
+    <div class="question-card">
+      <div class="q-text" id="q-text">Loading…</div>
+      <div class="scale" id="scale"></div>
+      <div class="scale-labels"><span>Strongly disagree</span><span>Strongly agree</span></div>
+    </div>
+
+    <div class="quiz-nav">
+      <button class="btn-ghost" id="back-btn" onclick="goBack()">&larr; Back</button>
+      <button class="btn-ghost" onclick="if(confirm('Restart the assessment?')) restartQuiz();">Restart</button>
+    </div>
+  </section>
+
+  <!-- ===================== RESULTS ===================== -->
+  <section id="screen-results" class="screen">
+    <div class="result-header">
+      <div class="eyebrow">Your Result</div>
+      <div class="diagram-wrap"><div id="result-diagram"></div></div>
+    </div>
+
+    <div class="combo-line">You are primarily a <strong id="combo-text">—</strong></div>
+
+    <div class="type-card" id="core-card">
+      <span class="tag">Your core type</span>
+      <h2 id="core-name">—</h2>
+      <div class="motivation" id="core-motivation">—</div>
+      <p class="desc" id="core-desc">—</p>
+    </div>
+
+    <div class="type-card wing" id="wing-card">
+      <span class="tag">Your wing</span>
+      <h2 id="wing-name">—</h2>
+      <div class="motivation" id="wing-motivation">—</div>
+      <p class="desc" id="wing-desc">—</p>
+    </div>
+
+    <div class="email-card">
+      <h3>Want this sent to your inbox?</h3>
+      <p>Optional &mdash; enter your email and we'll send you your result.</p>
+      <div class="email-row">
+        <input type="email" id="email-input" placeholder="you@example.com" autocomplete="email">
+        <button id="email-btn" onclick="emailResults()">Email it</button>
+      </div>
+      <div class="email-status" id="email-status"></div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn-ghost" onclick="restartQuiz()">&larr; Take the assessment again</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA
+============================================================ */
+const TYPES = [
+  {id:1, name:"The Reformer", hue:355, motivation:"To be good, right, and beyond reproach.",
+   desc:"Reformers are principled and purposeful, driven by a strong inner sense of right and wrong. They hold themselves to high standards and work hard to improve whatever is in front of them — a project, a process, themselves. At their best they're wise and discerning; under pressure they can become critical or rigid."},
+  {id:2, name:"The Helper", hue:35, motivation:"To be loved and needed by giving to others.",
+   desc:"Helpers are warm, attentive, and generous with their time and care. They read a room quickly and often know what people need before being asked. At their best they're genuinely selfless; under pressure they can overextend themselves and struggle to name their own needs."},
+  {id:3, name:"The Achiever", hue:75, motivation:"To be valuable and worthwhile through accomplishment.",
+   desc:"Achievers are driven, adaptable, and image-conscious, with a knack for setting a goal and getting it done efficiently. They're often the engine in the room. At their best they're genuinely inspiring; under pressure they can prioritize looking successful over being honest about how things are going."},
+  {id:4, name:"The Individualist", hue:115, motivation:"To find and express a unique, authentic identity.",
+   desc:"Individualists are introspective, expressive, and drawn to what feels emotionally real. They notice beauty and meaning that others miss, and aren't afraid to stand apart. At their best they're deeply creative; under pressure they can feel misunderstood or withdraw into their moods."},
+  {id:5, name:"The Investigator", hue:155, motivation:"To understand the world and preserve their own resources.",
+   desc:"Investigators are curious, analytical, and comfortable working things out alone before engaging. They value competence and privacy in equal measure. At their best they're insightful and innovative; under pressure they can retreat too far into their own head and disengage from others."},
+  {id:6, name:"The Loyalist", hue:195, motivation:"To feel secure and prepared for what might go wrong.",
+   desc:"Loyalists are responsible, perceptive, and quick to spot risk. They build trust carefully and value people and systems that have proven reliable. At their best they're steady and courageous; under pressure they can spiral into worst-case thinking or second-guess every decision."},
+  {id:7, name:"The Enthusiast", hue:235, motivation:"To stay happy, engaged, and free of pain or limitation.",
+   desc:"Enthusiasts are spontaneous, optimistic, and quick to see possibility in almost anything. They keep energy high and options open. At their best they're joyful and resourceful; under pressure they can scatter their focus or avoid sitting with anything difficult."},
+  {id:8, name:"The Challenger", hue:275, motivation:"To be strong, in control, and unbothered by weakness.",
+   desc:"Challengers are direct, decisive, and protective of the people they care about. They take up space and aren't afraid of confrontation. At their best they're a powerful force for good; under pressure they can dominate a room or push people away."},
+  {id:9, name:"The Peacemaker", hue:315, motivation:"To keep the peace and avoid conflict, inside and out.",
+   desc:"Peacemakers are easygoing, accommodating, and able to see every side of a situation. They bring calm to tense rooms. At their best they're a steady, grounding presence; under pressure they can go along with others so much that they lose track of their own priorities."}
+];
+
+const STATEMENTS = {
+  1: ["I notice mistakes and imperfections before I notice anything else.",
+      "I hold myself to a stricter standard than I hold other people.",
+      "I feel a nagging inner voice telling me things could always be better.",
+      "I believe there's usually a right way to do something, and I want to find it.",
+      "I get quietly frustrated when others don't seem to care about doing things properly.",
+      "I feel responsible for correcting things that are unfair or wrong.",
+      "I can be hard on myself when I fall short of my own expectations."],
+  2: ["I have a hard time saying no when someone needs my help.",
+      "I pay close attention to what other people need, sometimes before they know it themselves.",
+      "I feel most valuable when I'm taking care of someone else.",
+      "I often put other people's needs ahead of my own.",
+      "I like being the person others know they can count on.",
+      "I have trouble asking others for help, even when I need it.",
+      "I remember small details about people so I can support them better."],
+  3: ["I'm energized by setting a goal and hitting it.",
+      "I care a lot about how I come across to other people.",
+      "I have a hard time slowing down or being unproductive.",
+      "I like to be seen as successful, not just to be successful.",
+      "I adjust how I present myself depending on who I'm trying to impress.",
+      "I measure my worth by what I've achieved lately.",
+      "I move on to the next goal quickly instead of pausing to enjoy a win."],
+  4: ["I feel like I'm fundamentally different from most people.",
+      "I'm drawn to what feels meaningful, authentic, or emotionally honest.",
+      "My moods can shift intensely over the course of a day.",
+      "I often feel like something is missing, even when life is going well.",
+      "I express myself in ways that are distinctly my own.",
+      "I'm drawn to melancholy or bittersweet things more than most people.",
+      "I compare myself to others and often come up feeling different, not less."],
+  5: ["I need a lot of time alone to recharge and think.",
+      "I feel more comfortable observing a situation than jumping into it.",
+      "I like understanding how something works before I engage with it.",
+      "I'm careful about how much of my time and energy I give to other people.",
+      "I prefer to master a subject privately before speaking about it publicly.",
+      "I'd rather read about an experience than dive straight into it.",
+      "I keep my emotions to myself until I've made sense of them."],
+  6: ["I tend to imagine what could go wrong before it happens.",
+      "I value loyalty and look for it in the people around me.",
+      "I second-guess decisions, even ones I felt sure about at the time.",
+      "I feel more secure when I know what to expect.",
+      "I'm quick to spot risks that other people seem to miss.",
+      "I look to trusted people or clear rules when I'm unsure what to do.",
+      "I prepare more than most people think is necessary, just in case."],
+  7: ["I get restless when things feel repetitive or boring.",
+      "I'm drawn to new ideas, plans, and experiences.",
+      "I look for the upside, even in a difficult situation.",
+      "I have a hard time committing to one option when several are available.",
+      "I'd rather keep my options open than lock things down early.",
+      "I distract myself with something fun when things get heavy.",
+      "I have more ideas and plans than I actually have time to follow through on."],
+  8: ["I speak my mind, even when it makes people uncomfortable.",
+      "I feel a strong need to be in control of my own life.",
+      "I sometimes come across as more intense or forceful than I intend.",
+      "I respect strength and have little patience for weakness.",
+      "I protect the people I care about, sometimes fiercely.",
+      "I trust my own judgment more than I trust what I'm told.",
+      "I have a hard time showing vulnerability, even to people close to me."],
+  9: ["I avoid conflict whenever I can.",
+      "I can see multiple sides of an argument, which makes it hard to take one.",
+      "I go along with other people's plans more often than I push my own.",
+      "I feel most at peace when things around me are calm and steady.",
+      "I sometimes realize I've lost track of what I actually want.",
+      "I tend to procrastinate on things that feel uncomfortable or confrontational.",
+      "I merge with other people's opinions or routines more than I realize."]
+};
+
+// Interleave statements round-robin across the 9 types (7 rounds of 9)
+const QUESTIONS = [];
+for(let round=0; round<7; round++){
+  for(let t=1; t<=9; t++){
+    QUESTIONS.push({type:t, text:STATEMENTS[t][round]});
+  }
+}
+
+/* ============================================================
+   DIAGRAM (SVG enneagram symbol)
+============================================================ */
+const CLOCK_ORDER = [9,1,2,3,4,5,6,7,8]; // 9 at top, clockwise
+function typeById(id){ return TYPES.find(t=>t.id===id); }
+
+function buildDiagram(containerId, opts){
+  opts = opts || {};
+  const size = 280, cx = size/2, cy = size/2, R = 100, dotR = 20;
+  const coords = {};
+  CLOCK_ORDER.forEach((typeId, k)=>{
+    const angle = (-90 + k*40) * Math.PI/180;
+    coords[typeId] = { x: cx + R*Math.cos(angle), y: cy + R*Math.sin(angle) };
+  });
+
+  function pathFor(ids){
+    return ids.map((id,i)=> (i===0?"M":"L") + coords[id].x.toFixed(1) + "," + coords[id].y.toFixed(1)).join(" ") + " Z";
+  }
+  const trianglePath = pathFor([9,3,6]);
+  const hexagramPath = pathFor([1,4,2,8,5,7]);
+
+  let dots = "";
+  TYPES.forEach(t=>{
+    const c = coords[t.id];
+    const isCore = opts.core === t.id;
+    const isWing = opts.wing === t.id;
+    const dim = opts.core && !isCore && !isWing;
+    const r = isCore ? dotR+5 : (isWing ? dotR+1 : dotR);
+    const cls = "point-dot" + (dim?" dim":"") + ((isCore||isWing)?" highlight":"");
+    dots += `<g class="${cls}">`;
+    if(isCore||isWing){
+      dots += `<circle class="ring" cx="${c.x}" cy="${c.y}" r="${r+7}" stroke="hsl(${t.hue},55%,40%)"></circle>`;
+    }
+    dots += `<circle class="base" cx="${c.x}" cy="${c.y}" r="${r}" fill="hsl(${t.hue},50%,${isCore?42:(isWing?46:52)}%)"></circle>`;
+    dots += `<text x="${c.x}" y="${c.y+1}" font-size="${isCore?16:14}">${t.id}</text>`;
+    dots += `</g>`;
+  });
+
+  const svg = `
+    <svg class="enneagram" viewBox="0 0 ${size} ${size}">
+      <circle class="diag-circle-outline" cx="${cx}" cy="${cy}" r="${R}"></circle>
+      <path class="diag-line" d="${trianglePath}"></path>
+      <path class="diag-line" d="${hexagramPath}"></path>
+      ${dots}
+    </svg>`;
+  document.getElementById(containerId).innerHTML = svg;
+}
+
+/* ============================================================
+   EMAILJS CONFIG — fill these in with your own EmailJS values
+============================================================ */
+const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";   // EmailJS → Account → General
+const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";   // EmailJS → Email Services
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";  // EmailJS → Email Templates
+
+if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+}
+
+let lastResult = null; // set by renderResults(), used by emailResults()
+
+/* ============================================================
+   APP STATE / NAVIGATION
+============================================================ */
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function startQuiz(){
+  current = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  showScreen("screen-quiz");
+  renderQuestion();
+}
+
+function restartQuiz(){
+  showScreen("screen-intro");
+}
+
+const RING_CIRC = 2 * Math.PI * 22;
+document.getElementById("progress-ring-fg").style.strokeDasharray = RING_CIRC;
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById("q-text").textContent = q.text;
+  document.getElementById("progress-count").textContent = (current+1) + "/" + QUESTIONS.length;
+
+  const pct = current / QUESTIONS.length;
+  const offset = RING_CIRC * (1-pct);
+  document.getElementById("progress-ring-fg").style.strokeDashoffset = offset;
+
+  const scaleEl = document.getElementById("scale");
+  scaleEl.innerHTML = "";
+  for(let v=1; v<=5; v++){
+    const btn = document.createElement("button");
+    btn.textContent = v;
+    if(answers[current] === v) btn.classList.add("selected");
+    btn.onclick = ()=> selectAnswer(v);
+    scaleEl.appendChild(btn);
+  }
+
+  document.getElementById("back-btn").style.visibility = current === 0 ? "hidden" : "visible";
+}
+
+function selectAnswer(v){
+  answers[current] = v;
+  renderQuestion();
+  setTimeout(()=>{
+    if(current < QUESTIONS.length - 1){
+      current++;
+      renderQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 220);
+}
+
+function goBack(){
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+}
+
+/* ============================================================
+   SCORING + RESULTS
+============================================================ */
+function finishQuiz(){
+  const totals = {};
+  TYPES.forEach(t=> totals[t.id] = 0);
+  QUESTIONS.forEach((q,i)=>{
+    totals[q.type] += (answers[i] || 0);
+  });
+
+  let coreId = 1;
+  TYPES.forEach(t=>{ if(totals[t.id] > totals[coreId]) coreId = t.id; });
+
+  const idx = CLOCK_ORDER.indexOf(coreId);
+  const leftNeighbor = CLOCK_ORDER[(idx - 1 + 9) % 9];
+  const rightNeighbor = CLOCK_ORDER[(idx + 1) % 9];
+  const wingId = totals[leftNeighbor] >= totals[rightNeighbor] ? leftNeighbor : rightNeighbor;
+
+  renderResults(coreId, wingId);
+  showScreen("screen-results");
+}
+
+function renderResults(coreId, wingId){
+  const core = typeById(coreId), wing = typeById(wingId);
+
+  buildDiagram("result-diagram", {core:coreId, wing:wingId});
+
+  document.getElementById("combo-text").textContent =
+    "Type " + core.id + " (" + core.name + ") with a " + wing.id + "-wing";
+
+  document.getElementById("core-name").textContent = core.id + " — " + core.name;
+  document.getElementById("core-motivation").textContent = core.motivation;
+  document.getElementById("core-desc").textContent = core.desc;
+  document.getElementById("core-card").style.borderTopColor = `hsl(${core.hue},50%,42%)`;
+
+  document.getElementById("wing-name").textContent = wing.id + " — " + wing.name;
+  document.getElementById("wing-motivation").textContent = wing.motivation;
+  document.getElementById("wing-desc").textContent = wing.desc;
+
+  lastResult = { core, wing };
+  document.getElementById("email-input").value = "";
+  document.getElementById("email-status").textContent = "";
+  document.getElementById("email-status").className = "email-status";
+}
+
+function emailResults(){
+  const statusEl = document.getElementById("email-status");
+  const btn = document.getElementById("email-btn");
+  const emailVal = document.getElementById("email-input").value.trim();
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailPattern.test(emailVal)){
+    statusEl.textContent = "Please enter a valid email address.";
+    statusEl.className = "email-status err";
+    return;
+  }
+  if(typeof emailjs === "undefined" || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY"){
+    statusEl.textContent = "Email sending isn't set up on this copy of the page yet.";
+    statusEl.className = "email-status err";
+    return;
+  }
+  if(!lastResult){ return; }
+
+  btn.disabled = true;
+  statusEl.textContent = "Sending…";
+  statusEl.className = "email-status";
+
+  const { core, wing } = lastResult;
+  const params = {
+    to_email: emailVal,
+    combo_text: "Type " + core.id + " (" + core.name + ") with a " + wing.id + "-wing",
+    core_name: core.id + " — " + core.name,
+    core_motivation: core.motivation,
+    core_desc: core.desc,
+    wing_name: wing.id + " — " + wing.name,
+    wing_motivation: wing.motivation,
+    wing_desc: wing.desc
+  };
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+    .then(()=>{
+      statusEl.textContent = "Sent! Check your inbox.";
+      statusEl.className = "email-status ok";
+      btn.disabled = false;
+    })
+    .catch((err)=>{
+      console.error(err);
+      statusEl.textContent = "Something went wrong sending that. Try again?";
+      statusEl.className = "email-status err";
+      btn.disabled = false;
+    });
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+buildDiagram("intro-diagram", {});
+</script>
+</body>
+</html>
